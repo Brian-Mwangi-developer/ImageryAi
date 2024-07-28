@@ -70,7 +70,6 @@ export async function POST(req: Request) {
      const result = await model.generateContent(prompt);
      const response = await result.response;
      const output = await response.text();
-     
      await increaseApiLimit();
      return NextResponse.json({ output: output });
    } catch (error: any) {
