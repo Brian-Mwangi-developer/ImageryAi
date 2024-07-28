@@ -35,12 +35,22 @@
 //     return new NextResponse("Internal Error", { status: 500 });
 //   }
 // }
+import { checkApiLimit, increaseApiLimit } from "@/lib/api-limit";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
 
+
 export async function POST(req: Request) {
   const apiKey = process.env.GEMINI_API_KEY;
+
+  const freeTrial = await checkApiLimit();
+
   try {
+    if (!freeTrial) {
+      return new NextResponse("Free trial has expired.", {
+        status: 403
+      });
+    }
     const genAI = new GoogleGenerativeAI(apiKey!);
     const model = genAI.getGenerativeModel({ model: "gemini-pro" });
     const data = await req.json();
@@ -48,7 +58,7 @@ export async function POST(req: Request) {
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const output = await response.text();
-
+    await increaseApiLimit();
     return NextResponse.json({ output: output });
   } catch (error: any) {
     console.log(error);

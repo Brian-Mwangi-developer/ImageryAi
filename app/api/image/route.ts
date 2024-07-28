@@ -35,13 +35,22 @@
 //   }
 
 // }
+import { checkApiLimit, increaseApiLimit } from "@/lib/api-limit";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   const apiKey = process.env.GEMINI_API_KEY;
+
+  const freeTrial = await checkApiLimit();
+
   try {
+    if (!freeTrial) {
+      return new NextResponse("Free trial has expired.", {
+        status: 403
+      });
+    }
     const genAI = new GoogleGenerativeAI(apiKey!);
     const model = genAI.getGenerativeModel({ model: "gemini-pro" });
     const data = await req.json();
@@ -53,7 +62,9 @@ export async function POST(req: Request) {
     const images = response.candidates!.map(
       (candidate) => candidate.content.parts
     );
-    console.log("below are the images",images);
+    console.log("below are the images", images);
+    
+    await increaseApiLimit();
     return NextResponse.json({ images });
   } catch (error: any) {
     console.log(error);
