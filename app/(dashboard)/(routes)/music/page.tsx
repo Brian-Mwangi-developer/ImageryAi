@@ -17,6 +17,7 @@ import Loader from "@/components/Loader";
 import { cn } from "@/lib/utils";
 
 import ReactMarkdown from "react-markdown"
+import { useProModal } from "@/hooks/use-pro-modal";
 type Props = {};
 
 const MusicPage = (props: Props) => {
@@ -28,6 +29,7 @@ const MusicPage = (props: Props) => {
     },
   });
   const router = useRouter();
+   const proModal = useProModal();
   const isLoading = form.formState.isSubmitting;
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
@@ -37,6 +39,9 @@ const MusicPage = (props: Props) => {
 
       form.reset();
     } catch (error: any) {
+        if (error?.response?.status === 403) {
+          proModal.onOpen();
+        }
       console.log(error);
     } finally {
       router.refresh();

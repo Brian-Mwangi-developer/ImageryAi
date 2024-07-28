@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardFooter } from "@/components/ui/card";
+import { useProModal } from "@/hooks/use-pro-modal";
 type Props = {};
 
 const ImagePage = (props: Props) => {
@@ -40,6 +41,7 @@ const ImagePage = (props: Props) => {
   });
   const router = useRouter();
   const isLoading = form.formState.isSubmitting;
+   const proModal = useProModal();
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       const response = await fetch("/api/image", {
@@ -62,6 +64,9 @@ const ImagePage = (props: Props) => {
       form.reset();
       console.log(values);
     } catch (error: any) {
+        if (error?.response?.status === 403) {
+          proModal.onOpen();
+        }
       console.log(error);
     } finally {
       router.refresh();

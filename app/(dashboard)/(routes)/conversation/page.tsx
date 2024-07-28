@@ -19,9 +19,12 @@ import { cn } from "@/lib/utils";
 // import { ChatCompletionMessageParam } from "openai/resources/chat";
 // import { ChatCompletionMessageParam } from "openai/resources/chat";
 import ReactMarkdown from "react-markdown"
+import { useProModal } from "@/hooks/use-pro-modal";
 type Props = {};
 
 const ConversationPage = (props: Props) => {
+
+  
   const [output, setOutput] = useState("");
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -30,6 +33,7 @@ const ConversationPage = (props: Props) => {
     },
   });
   const router = useRouter();
+  const proModal = useProModal();
   const isLoading = form.formState.isSubmitting;
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
@@ -49,7 +53,10 @@ const ConversationPage = (props: Props) => {
       }
       form.reset();
     } catch (error: any) {
-      console.log(error);
+      if (error?.response?.status === 403) {
+        proModal.onOpen();
+      }
+      console.log(error)
     } finally {
       router.refresh();
     }
