@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 
 import ReactMarkdown from "react-markdown"
 import { useProModal } from "@/hooks/use-pro-modal";
+import toast from "react-hot-toast";
 type Props = {};
 
 const MusicPage = (props: Props) => {
@@ -41,6 +42,8 @@ const MusicPage = (props: Props) => {
     } catch (error: any) {
         if (error?.response?.status === 403) {
           proModal.onOpen();
+        } else {
+          toast.error("Something went Wrong");
         }
       console.log(error);
     } finally {

@@ -8,9 +8,10 @@ import { useEffect, useState } from "react";
 
 interface mobileSidebarProps {
   apiLimitCount: number;
+  isPro: boolean;
 }
 
-const MobileSidebar = ({apiLimitCount}: mobileSidebarProps) => {
+const MobileSidebar = ({apiLimitCount=0, isPro=false}: mobileSidebarProps) => {
     //fix the hydration error
     const [isMounted, setIsMounted] = useState(false);
 
@@ -26,7 +27,9 @@ const MobileSidebar = ({apiLimitCount}: mobileSidebarProps) => {
         </Button>
           </SheetTrigger>
           <SheetContent side = "left" className="p-0">
-              <Sidebar apiLimitCount={apiLimitCount}/>
+        <Sidebar
+          apiLimitCount={apiLimitCount}
+          isPro={isPro} />
           </SheetContent>
     </Sheet>
   );
