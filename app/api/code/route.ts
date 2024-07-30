@@ -42,37 +42,41 @@
 //GEMINI AI BELOW
 
 import { checkApiLimit, increaseApiLimit } from "@/lib/api-limit";
+import { checkSubscription } from "@/lib/subscription";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   const apiKey = process.env.GEMINI_API_KEY;
 
-   const freeTrial = await checkApiLimit();
+  const freeTrial = await checkApiLimit();
+  const isPro = await checkSubscription();
+  try {
+    if (!freeTrial && !isPro) {
+      return new NextResponse("Free trial has expired.", {
+        status: 403,
+      });
+    }
+    const genAI = new GoogleGenerativeAI(apiKey!);
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const data = await req.json();
+    const userPrompt = data.body;
 
-   try {
-     if (!freeTrial) {
-       return new NextResponse("Free trial has expired.", {
-         status: 403,
-       });
-     }
-     const genAI = new GoogleGenerativeAI(apiKey!);
-     const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-     const data = await req.json();
-     const userPrompt = data.body;
-
-     // Instruct the model to respond in Markdown code snippets with comments
-     const systemPrompt = `You are a code generator. Provide responses exclusively in Markdown code snippets, 
+    // Instruct the model to respond in Markdown code snippets with comments
+    const systemPrompt = `You are a code generator. Provide responses exclusively in Markdown code snippets, 
     including clear comments for explanation.`;
 
-     // Concatenate the instruction with the user's prompt
-     const prompt = `${systemPrompt}\n\n${userPrompt}`;
-     const result = await model.generateContent(prompt);
-     const response = await result.response;
-     const output = await response.text();
-     await increaseApiLimit();
-     return NextResponse.json({ output: output });
-   } catch (error: any) {
-     console.log(error);
-   }
+    // Concatenate the instruction with the user's prompt
+    const prompt = `${systemPrompt}\n\n${userPrompt}`;
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const output = await response.text();
+    if (!isPro) {
+      await increaseApiLimit();
+    }
+
+    return NextResponse.json({ output: output });
+  } catch (error: any) {
+    console.log(error);
+  }
 }

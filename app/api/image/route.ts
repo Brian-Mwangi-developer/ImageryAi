@@ -36,6 +36,7 @@
 
 // }
 import { checkApiLimit, increaseApiLimit } from "@/lib/api-limit";
+import { checkSubscription } from "@/lib/subscription";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 import { NextResponse } from "next/server";
@@ -44,11 +45,12 @@ export async function POST(req: Request) {
   const apiKey = process.env.GEMINI_API_KEY;
 
   const freeTrial = await checkApiLimit();
+  const isPro = await checkSubscription();
 
   try {
-    if (!freeTrial) {
+    if (!freeTrial && !isPro) {
       return new NextResponse("Free trial has expired.", {
-        status: 403
+        status: 403,
       });
     }
     const genAI = new GoogleGenerativeAI(apiKey!);
@@ -63,8 +65,10 @@ export async function POST(req: Request) {
       (candidate) => candidate.content.parts
     );
     console.log("below are the images", images);
-    
-    await increaseApiLimit();
+    if (!isPro) {
+      await increaseApiLimit();
+    }
+
     return NextResponse.json({ images });
   } catch (error: any) {
     console.log(error);

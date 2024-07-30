@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardFooter } from "@/components/ui/card";
 import { useProModal } from "@/hooks/use-pro-modal";
+import toast from "react-hot-toast";
 type Props = {};
 
 const ImagePage = (props: Props) => {
@@ -66,6 +67,8 @@ const ImagePage = (props: Props) => {
     } catch (error: any) {
         if (error?.response?.status === 403) {
           proModal.onOpen();
+        } else {
+          toast.error("Something went Wrong");
         }
       console.log(error);
     } finally {
